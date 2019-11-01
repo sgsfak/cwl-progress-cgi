@@ -146,7 +146,6 @@ int main(int argc, char* argv[])
     /* fprintf(stderr, "RUN_ID='%s'\n", run_id); */
 
     cJSON* json = getProgress(run_id);
-    sdsfree(run_id);
 
     cJSON* calls = cJSON_GetObjectItemCaseSensitive(json, "calls");
     cJSON* call;
@@ -154,7 +153,6 @@ int main(int argc, char* argv[])
     /* Sort "calls" by "start" datetime */
     for (call = calls->child; call!= NULL; call = call->next) {
         time_t t = CALL_START_TIME(call);
-        // fprintf(stderr, "Now at %s time = %ld\n", call->string, (long)t - 1571720000);
         cJSON* p;
         for (p = call->prev; p!= NULL && CALL_START_TIME(p) > t; p = p->prev);
         if (p == call->prev)
@@ -180,8 +178,13 @@ int main(int argc, char* argv[])
     }
 
     const char* status = cJSON_GetObjectItem(json, "status")->valuestring;
-    progress = sdscatprintf(sdsempty(), "The status of run `%s` is *%s*\nProgress:\n```\n%s\n```", 
-                run_id, status, progress);
+    progress = sdscatprintf(sdsempty(), 
+            "The status of run `%s` is *%s*\n"
+            "Progress:\n"
+            "```\n"
+            "%s"
+            "\n```", 
+            run_id, status, progress);
 
     cJSON* respjs = cJSON_CreateObject();
     cJSON_AddItemToObject(respjs, "response_type",  cJSON_CreateString("in_channel"));
@@ -194,5 +197,6 @@ int main(int argc, char* argv[])
     cJSON_Delete(json);
     cJSON_Delete(respjs);
     sdsfree(progress);
+    sdsfree(run_id);
     return 0;
 }

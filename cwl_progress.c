@@ -126,23 +126,28 @@ void printlist(cJSON* p)
 int main(int argc, char* argv[])
 {
 
-    sds run_id = sdsempty();
+    sds run_id = NULL;
     
     if (argc > 1) 
-        run_id = sdscat(run_id, argv[1]);
+        run_id = sdsnew(argv[1]);
     else {
         const char* qs = getenv("QUERY_STRING");
-        char* p = strstr(qs, QS_RUN);
-        assert(p);
-        p += strlen(QS_RUN);
-        char* start = strstr(p, "=");
-        assert(start);
-        start += 1;
-        char* end = strstr(start, "&");
-        if (end == NULL)
-            end = start + strlen(qs); // end of QUERY_STRING
-        run_id = sdscatlen(run_id, start, end-start);
+        int count = 0;
+        sds* params = sdssplitlen(qs, strlen(qs), "&", 1, &count);
+        if (params == NULL)
+            return -1;
+        for (int i=0; i<count; ++i) {
+            char* p = strchr(params[i], '=');
+            *p = '\0';
+            if (strcmp(params[i], QS_RUN) != 0)
+                continue;
+            run_id = sdsnew(p+1);
+            break;
+        }
+        sdsfreesplitres(params, count);
     }
+    if (run_id == NULL || sdslen(run_id) == 0)
+        return -1;
     /* fprintf(stderr, "RUN_ID='%s'\n", run_id); */
 
     cJSON* json = getProgress(run_id);

@@ -12,6 +12,10 @@ Then in your Slack workspace you can get the status of a given "run id" as follo
 /cwl <run-id>
 ```
 
+and the response will be a table that contains each step of the workflow, its start, end time, and execution time (if finished), like this:
+
+![](status.png)
+
 ## Deployment
 
 You can deploy it e.g. using [Caddy](https://caddyserver.com/v1/docs/http.cgi), or [Apache](https://httpd.apache.org/docs/2.4/howto/cgi.html), or [lighttpd](https://redmine.lighttpd.net/projects/lighttpd/wiki/Docs_ModCGI)
